@@ -236,7 +236,7 @@ public class DispatcherServlet extends HttpServlet {
             }
             Map<String,String[]> parameterMap = req.getParameterMap();
             Map<String, Integer> paramIndexMapping = mapping.getParamIndexMapping();
-            Map<String, Class> paramTypeMapping = mapping.getParamTypeMapping();
+            Class[] paramTypes = mapping.getTypeClasses();     // 获取形参列表
             // 参数数组
             Object[] args = new Object[paramIndexMapping.size()];
 
@@ -249,16 +249,19 @@ public class DispatcherServlet extends HttpServlet {
                 Integer index = paramIndexMapping.get(HttpServletResponse.class.getName());
                 args[index] = resp;
             }
+            Set<Map.Entry<String, String[]>> entries = parameterMap.entrySet();
+            for (Map.Entry<String, String[]> entry : entries) {
 
-            Set<Map.Entry<String, Class>> entries = paramTypeMapping.entrySet();
-            for (Map.Entry<String, Class> entry : entries) {
                 String paramKey = entry.getKey();
-                String[] paraValues = parameterMap.get(paramKey);
-                Class type = paramTypeMapping.get(paramKey);
-                Integer index = paramIndexMapping.get(paramKey);
+                String[] paraValues = entry.getValue();
+                Integer index = paramIndexMapping.get(paramKey);    // 根据key找到参数位置
+                Class type = paramTypes[index];     // 根据索引获取参数列表中的参数字节码对象
+
                 convert.convert(paraValues,type,index,args);
             }
             Object result = mapping.getMethod().invoke(mapping.getController(), args);
+            if(result == null || result instanceof Void) return;
+
             resp.getWriter().write(result.toString());
             return;
         }

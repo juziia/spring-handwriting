@@ -18,46 +18,43 @@ public class HandlerMapping {
     private String url;     // url
     private Object controller;      // controller对象
     private Method method;      // url对应的方法
-    private Map<String,Integer> paramIndexMapping;  // 建立方法参数与位置的映射
-    private Map<String,Class> paramTypeMapping;        // 建立注解上参数与类
+    private Map<String, Integer> paramIndexMapping;  // 建立方法参数与位置的映射
+    private Class[] typeClasses;        // 参数列表
 
-    public HandlerMapping(String url,Method method,Object controller){
-        this.url =url;
+    public HandlerMapping(String url, Method method, Object controller) {
+        this.url = url;
         this.method = method;
         this.controller = controller;
         this.paramIndexMapping = new HashMap<>();
-        this.paramTypeMapping = new HashMap<>();
         this.paramIndexMapping();
-        this.paramMapping();
-    }
-
-    private void paramMapping() {
-
     }
 
     private void paramIndexMapping() {
         Class<?>[] parameterTypes = this.method.getParameterTypes();
+        this.typeClasses = new Class[parameterTypes.length];
         for (int i = 0; i < parameterTypes.length; i++) {
             Class parameterType = parameterTypes[i];
-            if(parameterType == HttpServletRequest.class){
-                paramIndexMapping.put(HttpServletRequest.class.getName(),i);
+            if (parameterType == HttpServletRequest.class) {
+                paramIndexMapping.put(HttpServletRequest.class.getName(), i);
+                typeClasses[i] = parameterType;
                 continue;
-            }else if(parameterType == HttpServletResponse.class){
-                paramIndexMapping.put(HttpServletResponse.class.getName(),i);
+            } else if (parameterType == HttpServletResponse.class) {
+                paramIndexMapping.put(HttpServletResponse.class.getName(), i);
+                typeClasses[i] = parameterType;
                 continue;
             }
 
             // 获取方法参数上所有的注解
             Annotation[][] parameterAnnotations = method.getParameterAnnotations();
-            if(parameterAnnotations == null || parameterAnnotations.length ==0 ) continue;
+            if (parameterAnnotations == null || parameterAnnotations.length == 0) continue;
             for (int j = 0; j < parameterAnnotations.length; j++) {
                 for (Annotation annotation : parameterAnnotations[j]) {
                     // 判断类型是否是RequestParam
-                    if(annotation instanceof RequestParam){
+                    if (annotation instanceof RequestParam) {
                         RequestParam requestParam = (RequestParam) annotation;
                         String paramKey = requestParam.value();
-                        paramTypeMapping.put(paramKey,parameterType); // key: RequestParam中的value  value: 参数类型
-                        paramIndexMapping.put(paramKey,i);  // 将RequestParam中的value属性值作为key,参数位置作为value
+                        typeClasses[i] = parameterType; //  将
+                        paramIndexMapping.put(paramKey, i);  // 将RequestParam中的value属性值作为key,参数位置作为value
                     }
                 }
             }
@@ -81,7 +78,7 @@ public class HandlerMapping {
         return paramIndexMapping;
     }
 
-    public Map<String, Class> getParamTypeMapping() {
-        return paramTypeMapping;
+    public Class[] getTypeClasses() {
+        return typeClasses;
     }
 }
