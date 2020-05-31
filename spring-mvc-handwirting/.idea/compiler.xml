@@ -7,7 +7,12 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="spring-mvc-handwirting" />
+        <module name="spring-handwriting-v2" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="spring-handwiting" target="1.5" />
+      <module name="spring-handwriting" target="1.5" />
+    </bytecodeTargetLevel>
   </component>
 </project>
