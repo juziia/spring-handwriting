@@ -111,10 +111,11 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
 
         Object instance = null;
 
-        // 如果 是多例那么将每次重新创建对象
-        if (singletonObjects.containsKey(beanName) && beanDefinitionMap.get(beanName).isSingleton()) {
+        // 单例bean容器中存在该对象
+        if (singletonObjects.containsKey(beanName) && beanDefinition.isSingleton()) {
             instance = singletonObjects.get(beanName);
         } else {
+            // 如果 是多例那么将每次重新创建对象
             try {
                 Class<?> beanClazz = Class.forName(beanDefinition.getClassName());
                 // 只有被Service,Controller注解的类才被初始化
