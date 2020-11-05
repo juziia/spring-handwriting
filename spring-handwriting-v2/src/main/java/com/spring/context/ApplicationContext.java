@@ -44,8 +44,8 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
         Set<Map.Entry<String, BeanDefinition>> entries = beanDefinitionMap.entrySet();
 
         for (Map.Entry<String, BeanDefinition> definitionEntry : entries) {
+            // 不是延迟加载则进行注入
             if (!definitionEntry.getValue().isLazyInit()) {
-                // 不是延迟加载则进行注入
                 this.getBean(definitionEntry.getKey());
 
             }
@@ -65,7 +65,7 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
     @Override
     public Object getBean(String beanName) {
 
-        // 初始化bean,以防止循环依赖
+        // 先初始化bean,以防止循环依赖
         Object instance = initializationBean(beanName, beanDefinitionMap.get(beanName));
 
         // di  向bean中的依赖对象进行注入
@@ -80,17 +80,17 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
 
         if (fields != null && fields.length != 0) {
             for (Field field : fields) {
-                if(field.isAnnotationPresent(Autowired.class)){
+                if (field.isAnnotationPresent(Autowired.class)) {
                     String beanFieldName = field.getAnnotation(Autowired.class).value();
-                    if ("".equals(beanFieldName)){
+                    if ("".equals(beanFieldName)) {
                         beanFieldName = field.getType().getName();
                     }
                     //
-                    if(!factoryBeanInstanceCache.containsKey(beanFieldName)) continue;
+                    if (!factoryBeanInstanceCache.containsKey(beanFieldName)) continue;
 
                     field.setAccessible(true);
                     try {
-                        field.set(beanWrapper.getWrappedInstance(),this.factoryBeanInstanceCache.get(beanFieldName).getWrappedInstance());
+                        field.set(beanWrapper.getWrappedInstance(), this.factoryBeanInstanceCache.get(beanFieldName).getWrappedInstance());
                     } catch (IllegalAccessException e) {
                         e.printStackTrace();
                     }
@@ -99,9 +99,9 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
             }
         }
 
-        if(! factoryBeanInstanceCache.containsKey(beanName)){
-            factoryBeanInstanceCache.put(beanName,beanWrapper);
-            factoryBeanInstanceCache.put(beanDefinitionMap.get(beanName).getClassName(),beanWrapper);
+        if (!factoryBeanInstanceCache.containsKey(beanName)) {
+            factoryBeanInstanceCache.put(beanName, beanWrapper);
+            factoryBeanInstanceCache.put(beanDefinitionMap.get(beanName).getClassName(), beanWrapper);
         }
 
 
@@ -121,8 +121,10 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
                 if (beanClazz.isAnnotationPresent(Service.class) || beanClazz.isAnnotationPresent(Controller.class)) {
 
                     instance = beanClazz.newInstance();
-                    singletonObjects.put(beanDefinition.getFactoryBeanName(), instance);
                 }
+                // 如果是单例bean才加入容器
+                if (beanDefinition.isSingleton())
+                    singletonObjects.put(beanDefinition.getFactoryBeanName(), instance);
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -142,7 +144,7 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
     }
 
 
-    public Properties getConfig(){
+    public Properties getConfig() {
         return reader.getConfig();
     }
 }
