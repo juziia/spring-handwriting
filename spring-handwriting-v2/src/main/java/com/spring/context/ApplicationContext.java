@@ -99,7 +99,8 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
             }
         }
 
-        if (!factoryBeanInstanceCache.containsKey(beanName)) {
+        // 单例bean才加入到ioc容器中
+        if (!factoryBeanInstanceCache.containsKey(beanName) && beanDefinitionMap.get(beanName).isSingleton()) {
             factoryBeanInstanceCache.put(beanName, beanWrapper);
             factoryBeanInstanceCache.put(beanDefinitionMap.get(beanName).getClassName(), beanWrapper);
         }
